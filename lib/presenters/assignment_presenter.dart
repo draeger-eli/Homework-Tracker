@@ -12,4 +12,7 @@ class AssignmentPresenter {
   void toggleCompleted(int index) {
     _assignments[index].isCompleted = !_assignments[index].isCompleted;
   }
+    void deleteAssignment(int index) {
+    _assignments.removeAt(index);
+  }
 }

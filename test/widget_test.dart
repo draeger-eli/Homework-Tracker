@@ -7,24 +7,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:homework_tracker/main.dart';
+import 'package:homework_tracker/views/main_navigation.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Navigation opens assignments and courses', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: MainNavigationScreen()),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Welcome to Homework Tracker!'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.tap(find.byIcon(Icons.list));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Assignments'), findsNWidgets(2));
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.book));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Courses'), findsNWidgets(2));
+    expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 }

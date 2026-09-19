@@ -72,12 +72,21 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
                     : TextDecoration.none,
               ),
             ),
-            value: assignment.isCompleted,
+                        value: assignment.isCompleted,
             onChanged: (value) {
               setState(() {
                 _presenter.toggleCompleted(index);
               });
             },
+            secondary: IconButton(
+              icon: const Icon(Icons.delete),
+              tooltip: 'Delete assignment',
+              onPressed: () {
+                setState(() {
+                  _presenter.deleteAssignment(index);
+                });
+              },
+            ),
           );
         },
       ),
