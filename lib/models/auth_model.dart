@@ -5,7 +5,10 @@ class AuthModel {
 
   Future<String?> login(String email, String password) async {
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       return null;
     } catch (e) {
       return e.toString();
