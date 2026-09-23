@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../presenters/auth_presenter.dart';
 import 'login_screen.dart';
 
@@ -10,10 +9,14 @@ class ProfileScreen extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     await _presenter.logout();
+
     if (!context.mounted) return;
+
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
       (_) => false,
     );
   }
@@ -21,6 +24,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final email = _presenter.getCurrentUserEmail() ?? 'Unknown User';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -34,7 +38,11 @@ class ProfileScreen extends StatelessWidget {
             const CircleAvatar(
               radius: 50,
               backgroundColor: Colors.purple,
-              child: Icon(Icons.person, size: 50, color: Colors.white),
+              child: Icon(
+                Icons.person,
+                size: 50,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 24),
             Card(
