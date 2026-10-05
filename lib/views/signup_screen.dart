@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../presenters/auth_presenter.dart';
 import 'login_screen.dart';
 import 'main_navigation.dart';
@@ -47,9 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
     } else {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (_) => const MainNavigationScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
         (_) => false,
       );
     }
@@ -76,23 +75,16 @@ class _SignupScreenState extends State<SignupScreen> {
           child: Column(
             children: [
               if (_errorMessage != null)
-                Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: Colors.red),
-                ),
+                Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                ),
+                decoration: const InputDecoration(labelText: 'Email'),
               ),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                ),
+                decoration: const InputDecoration(labelText: 'Password'),
               ),
               TextField(
                 controller: _confirmPasswordController,
@@ -104,9 +96,7 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _isLoading ? null : _handleSignup,
-                child: Text(
-                  _isLoading ? 'Signing up...' : 'Sign Up',
-                ),
+                child: Text(_isLoading ? 'Signing up...' : 'Sign Up'),
               ),
               TextButton(
                 onPressed: _isLoading
@@ -119,9 +109,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         );
                       },
-                child: const Text(
-                  'Already have an account? Log in',
-                ),
+                child: const Text('Already have an account? Log in'),
               ),
             ],
           ),

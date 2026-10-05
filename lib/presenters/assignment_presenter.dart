@@ -5,14 +5,27 @@ class AssignmentPresenter {
 
   List<Assignment> get assignments => _assignments;
 
-  void addAssignment(String title) {
+  Future<void> loadAssignments() async {
+    final fetched = await Assignment.fetchAssignments();
+    _assignments
+      ..clear()
+      ..addAll(fetched);
+  }
+
+  Future<void> addAssignment(String title) async {
+    await Assignment.addAssignment(title);
     _assignments.add(Assignment(title: title));
   }
 
-  void toggleCompleted(int index) {
+  Future<void> toggleCompleted(int index) async {
+    await Assignment.updateCompletionStatus(index, _assignments);
     _assignments[index].isCompleted = !_assignments[index].isCompleted;
   }
-    void deleteAssignment(int index) {
+
+  // Enhancement: remove locally first so the UI updates instantly,
+  // then delete from Realtime Database
+  Future<void> deleteAssignment(int index) async {
     _assignments.removeAt(index);
+    await Assignment.deleteAssignment(index);
   }
 }

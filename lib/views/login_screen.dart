@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../presenters/auth_presenter.dart';
 import 'main_navigation.dart';
 import 'signup_screen.dart';
@@ -38,9 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => const MainNavigationScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
       );
     }
   }
@@ -65,30 +64,21 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             children: [
               if (_errorMessage != null)
-                Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: Colors.red),
-                ),
+                Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                ),
+                decoration: const InputDecoration(labelText: 'Email'),
               ),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                ),
+                decoration: const InputDecoration(labelText: 'Password'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _isLoading ? null : _handleLogin,
-                child: Text(
-                  _isLoading ? 'Logging in...' : 'Login',
-                ),
+                child: Text(_isLoading ? 'Logging in...' : 'Login'),
               ),
               TextButton(
                 onPressed: _isLoading
@@ -101,9 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       },
-                child: const Text(
-                  "Don't have an account? Sign up",
-                ),
+                child: const Text("Don't have an account? Sign up"),
               ),
             ],
           ),

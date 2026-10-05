@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
+
 import '../presenters/assignment_presenter.dart';
 
 class AssignmentListScreen extends StatefulWidget {
   const AssignmentListScreen({super.key});
 
   @override
-  State<AssignmentListScreen> createState() =>
-      _AssignmentListScreenState();
+  State<AssignmentListScreen> createState() => _AssignmentListScreenState();
 }
 
 class _AssignmentListScreenState extends State<AssignmentListScreen> {
   final AssignmentPresenter _presenter = AssignmentPresenter();
+
+  // ---- Lab 5: added ----
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAssignments();
+  }
+
+  Future<void> _loadAssignments() async {
+    await _presenter.loadAssignments();
+    setState(() => _isLoading = false);
+  }
+  // ---- end Lab 5 ----
 
   void _showAddAssignmentDialog() {
     String newAssignmentTitle = '';
@@ -35,15 +50,15 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              // ---- Lab 5: changed ----
+              onPressed: () async {
                 if (newAssignmentTitle.trim().isNotEmpty) {
-                  setState(() {
-                    _presenter.addAssignment(newAssignmentTitle.trim());
-                  });
+                  await _presenter.addAssignment(newAssignmentTitle.trim());
+                  setState(() {});
                 }
-
                 Navigator.pop(context);
               },
+              // ---- end Lab 5 ----
               child: const Text('Add'),
             ),
           ],
@@ -58,38 +73,24 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Assignments')),
-      body: ListView.builder(
-        itemCount: assignments.length,
-        itemBuilder: (context, index) {
-          final assignment = assignments[index];
-
-          return CheckboxListTile(
-            title: Text(
-              assignment.title,
-              style: TextStyle(
-                decoration: assignment.isCompleted
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-              ),
-            ),
-                        value: assignment.isCompleted,
-            onChanged: (value) {
-              setState(() {
-                _presenter.toggleCompleted(index);
-              });
-            },
-            secondary: IconButton(
-              icon: const Icon(Icons.delete),
-              tooltip: 'Delete assignment',
-              onPressed: () {
-                setState(() {
-                  _presenter.deleteAssignment(index);
-                });
+      // ---- Lab 5: changed ----
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: assignments.length,
+              itemBuilder: (context, index) {
+                final assignment = assignments[index];
+                return CheckboxListTile(
+                  title: Text(assignment.title),
+                  value: assignment.isCompleted,
+                  onChanged: (_) async {
+                    await _presenter.toggleCompleted(index);
+                    setState(() {});
+                  },
+                );
               },
             ),
-          );
-        },
-      ),
+      // ---- end Lab 5 ----
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddAssignmentDialog,
         child: const Icon(Icons.add),
