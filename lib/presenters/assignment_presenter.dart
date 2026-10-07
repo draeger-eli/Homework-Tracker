@@ -12,9 +12,9 @@ class AssignmentPresenter {
       ..addAll(fetched);
   }
 
-  Future<void> addAssignment(String title) async {
-    await Assignment.addAssignment(title);
-    _assignments.add(Assignment(title: title));
+  Future<void> addAssignment(String title, String courseName) async {
+    await Assignment.addAssignment(title, courseName);
+    _assignments.add(Assignment(title: title, courseName: courseName));
   }
 
   Future<void> toggleCompleted(int index) async {
@@ -22,8 +22,6 @@ class AssignmentPresenter {
     _assignments[index].isCompleted = !_assignments[index].isCompleted;
   }
 
-  // Enhancement: remove locally first so the UI updates instantly,
-  // then delete from Realtime Database
   Future<void> deleteAssignment(int index) async {
     _assignments.removeAt(index);
     await Assignment.deleteAssignment(index);

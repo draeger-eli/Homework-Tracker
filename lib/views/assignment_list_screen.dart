@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../presenters/assignment_presenter.dart';
+import '../presenters/course_presenter.dart';
 
-// Enhancement #2: filter options
 enum AssignmentFilter { all, incomplete, completed }
 
 class AssignmentListScreen extends StatefulWidget {
@@ -14,24 +14,29 @@ class AssignmentListScreen extends StatefulWidget {
 
 class _AssignmentListScreenState extends State<AssignmentListScreen> {
   final AssignmentPresenter _presenter = AssignmentPresenter();
+  final CoursePresenter _coursePresenter = CoursePresenter();
 
-  // ---- Lab 5: added ----
   bool _isLoading = true;
+  String? _selectedCourseFilter;
+  String? _newAssignmentCourse;
+  List<String> _courseNames = [];
+  AssignmentFilter _filter = AssignmentFilter.all;
 
   @override
   void initState() {
     super.initState();
-    _loadAssignments();
+    _loadData();
   }
 
-  Future<void> _loadAssignments() async {
+  Future<void> _loadData() async {
+    await _coursePresenter.loadCourses();
     await _presenter.loadAssignments();
-    setState(() => _isLoading = false);
-  }
-  // ---- end Lab 5 ----
 
-  // ---- Enhancement #2: filter ----
-  AssignmentFilter _filter = AssignmentFilter.all;
+    setState(() {
+      _isLoading = false;
+      _courseNames = _coursePresenter.courses.map((c) => c.name).toList();
+    });
+  }
 
   bool _matchesFilter(bool isCompleted) {
     return switch (_filter) {
@@ -40,43 +45,61 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
       AssignmentFilter.completed => isCompleted,
     };
   }
-  // ---- end Enhancement #2 ----
 
   void _showAddAssignmentDialog() {
     String newAssignmentTitle = '';
+    _newAssignmentCourse = _courseNames.isNotEmpty ? _courseNames.first : null;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Add Assignment'),
-          content: TextField(
-            autofocus: true,
-            decoration: const InputDecoration(
-              hintText: 'Enter assignment title',
-            ),
-            onChanged: (value) {
-              newAssignmentTitle = value;
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              // ---- Lab 5: changed ----
-              onPressed: () async {
-                if (newAssignmentTitle.trim().isNotEmpty) {
-                  await _presenter.addAssignment(newAssignmentTitle.trim());
-                  setState(() {});
-                }
-                Navigator.pop(context);
-              },
-              // ---- end Lab 5 ----
-              child: const Text('Add'),
-            ),
-          ],
+        // Rebuild the dialog when its selected course changes.
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Add Assignment'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Enter assignment title',
+                    ),
+                    onChanged: (value) => newAssignmentTitle = value,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButton<String>(
+                    value: _newAssignmentCourse,
+                    items: _courseNames.map((name) {
+                      return DropdownMenuItem(value: name, child: Text(name));
+                    }).toList(),
+                    onChanged: (value) =>
+                        setDialogState(() => _newAssignmentCourse = value),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (newAssignmentTitle.trim().isNotEmpty &&
+                        _newAssignmentCourse != null) {
+                      await _presenter.addAssignment(
+                        newAssignmentTitle.trim(),
+                        _newAssignmentCourse!,
+                      );
+                      setState(() {});
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -86,21 +109,50 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
   Widget build(BuildContext context) {
     final assignments = _presenter.assignments;
 
-    // Enhancement #2: positions in the FULL list of assignments that pass the filter.
-    // Toggle and delete must receive full-list positions, because the model
-    // finds the matching Firebase entry by its position in the full list.
-    final visibleIndexes = [
-      for (var i = 0; i < assignments.length; i++)
-        if (_matchesFilter(assignments[i].isCompleted)) i,
-    ];
+    final displayedAssignments = _selectedCourseFilter == null
+        ? assignments
+        : assignments
+              .where((a) => a.courseName == _selectedCourseFilter)
+              .toList();
+
+    // Keep the completion filter from the previous lab.
+    final filteredAssignments = displayedAssignments
+        .where((assignment) => _matchesFilter(assignment.isCompleted))
+        .toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Assignments')),
+      appBar: AppBar(
+        title: const Text('Assignments'),
+        actions: [
+          if (_courseNames.isNotEmpty)
+            DropdownButton<String>(
+              hint: const Text(
+                'Filter by course',
+                style: TextStyle(color: Colors.white),
+              ),
+              dropdownColor: Colors.blue[100],
+              value: _selectedCourseFilter,
+              onChanged: (value) {
+                setState(() {
+                  _selectedCourseFilter = value;
+                });
+              },
+              items: [
+                const DropdownMenuItem<String>(
+                  value: null,
+                  child: Text('All Courses'),
+                ),
+                ..._courseNames.map(
+                  (name) => DropdownMenuItem(value: name, child: Text(name)),
+                ),
+              ],
+            ),
+        ],
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Enhancement #2: filter control
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: SegmentedButton<AssignmentFilter>(
@@ -126,27 +178,33 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
                   ),
                 ),
                 Expanded(
-                  child: visibleIndexes.isEmpty
+                  child: filteredAssignments.isEmpty
                       ? const Center(child: Text('No assignments to show'))
                       : ListView.builder(
-                          itemCount: visibleIndexes.length,
-                          itemBuilder: (context, i) {
-                            final index = visibleIndexes[i];
-                            final assignment = assignments[index];
+                          itemCount: filteredAssignments.length,
+                          itemBuilder: (context, index) {
+                            final assignment = filteredAssignments[index];
+
+                            // Use the assignment's position in the full list.
+                            final originalIndex =
+                                assignments.indexOf(assignment);
+
                             return CheckboxListTile(
                               controlAffinity: ListTileControlAffinity.leading,
                               title: Text(assignment.title),
+                              subtitle: Text('Course: ${assignment.courseName}'),
                               value: assignment.isCompleted,
                               onChanged: (_) async {
-                                await _presenter.toggleCompleted(index);
+                                await _presenter.toggleCompleted(originalIndex);
                                 setState(() {});
                               },
-                              // Enhancement #1: delete button
                               secondary: IconButton(
                                 icon: const Icon(Icons.delete_outline),
                                 tooltip: 'Delete assignment',
                                 onPressed: () async {
-                                  await _presenter.deleteAssignment(index);
+                                  await _presenter.deleteAssignment(
+                                    originalIndex,
+                                  );
                                   setState(() {});
                                 },
                               ),
