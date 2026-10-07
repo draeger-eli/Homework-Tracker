@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../widgets/add_fab.dart';
 import '../presenters/assignment_presenter.dart';
 import '../presenters/course_presenter.dart';
 
@@ -21,6 +21,7 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
   String? _newAssignmentCourse;
   List<String> _courseNames = [];
   AssignmentFilter _filter = AssignmentFilter.all;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -117,8 +118,11 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
 
     // Keep the completion filter from the previous lab.
     final filteredAssignments = displayedAssignments
-        .where((assignment) => _matchesFilter(assignment.isCompleted))
-        .toList();
+    .where((assignment) {
+      return _matchesFilter(assignment.isCompleted) &&
+          assignment.title.toLowerCase().contains(_searchQuery.toLowerCase());
+    })
+    .toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -152,7 +156,21 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
-              children: [
+              children: [Padding(
+  padding: const EdgeInsets.all(8),
+  child: TextField(
+    decoration: const InputDecoration(
+      labelText: 'Search assignments',
+      prefixIcon: Icon(Icons.search),
+      border: OutlineInputBorder(),
+    ),
+    onChanged: (value) {
+      setState(() {
+        _searchQuery = value.trim();
+      });
+    },
+  ),
+),
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: SegmentedButton<AssignmentFilter>(
@@ -214,10 +232,7 @@ class _AssignmentListScreenState extends State<AssignmentListScreen> {
                 ),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddAssignmentDialog,
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: AddFAB(onPressed: _showAddAssignmentDialog),
     );
   }
 }
